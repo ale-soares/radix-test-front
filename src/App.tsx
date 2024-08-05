@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { v4 as uuidv4 } from "uuid";
 
 import getAllSensorData from "./services/getAllSensorData";
 import getSensorData from "./services/getSensorData";
@@ -6,12 +7,21 @@ import getSensorData from "./services/getSensorData";
 import { SensorData, equipmentId } from "./types/SensorData";
 
 import Card from "./components/Card";
+import SensorDataGraph from "./sections/SensorDataGraph";
+
+import { calculateMeanValues } from "./utils/calculateMeanValues";
 
 const App = () => {
   const [allSensorData, setAllSensorData] = useState<SensorData[]>([]);
-  const [sensorData, setSensorData] = useState<SensorData>();
+  const [sensorData, setSensorData] = useState<SensorData[]>();
   const [uniqueSensorIds, setUniqueSensorIds] = useState<equipmentId[]>([]);
-  const [selectedSensorId, setSelectedSensorId] = useState(uniqueSensorIds[0]);
+  const [selectedSensorId, setSelectedSensorId] = useState("");
+  const [meanValues, setMeanValues] = useState({
+    last24Hours: 0,
+    last48Hours: 0,
+    lastWeek: 0,
+    lastMonth: 0,
+  });
 
   const fetchAllSensorData = useCallback(async () => {
     try {
@@ -36,8 +46,9 @@ const App = () => {
 
   const fetchSensorData = useCallback(async (equipmentId: equipmentId) => {
     try {
-      const response: SensorData = await getSensorData(equipmentId);
+      const response: SensorData[] = await getSensorData(equipmentId);
       setSensorData(response);
+      setMeanValues(calculateMeanValues(response));
     } catch (error) {
       console.error("Error fetching sensor data:", error);
     }
@@ -45,8 +56,10 @@ const App = () => {
 
   const handleSensorIdChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
-      setSelectedSensorId(e.target.value);
-      if (selectedSensorId) fetchSensorData(e.target.value);
+      const selectedValue = e.target.value;
+
+      setSelectedSensorId(selectedValue);
+      if (selectedSensorId) fetchSensorData(selectedValue);
     },
     [fetchSensorData, selectedSensorId]
   );
@@ -75,13 +88,19 @@ const App = () => {
           </option>
         ))}
       </select>
-      {sensorData &&
-        sensorData.map((sensor: SensorData) => (
-          <>
-            <h1>{sensor.equipmentId}</h1>
-            <Card key={sensor._id} title="das" value={sensor.value} />
-          </>
-        ))}
+      <Card
+        key={uuidv4()}
+        title="Last 24 Hours"
+        value={meanValues.last24Hours}
+      />
+      <Card
+        key={uuidv4()}
+        title="Last 48 Hours"
+        value={meanValues.last48Hours}
+      />
+      <Card key={uuidv4()} title="Last Week" value={meanValues.lastWeek} />
+      <Card key={uuidv4()} title="Last Month" value={meanValues.lastMonth} />
+      {sensorData ? <SensorDataGraph selectedSensorData={sensorData} /> : <></>}
     </>
   );
 };
