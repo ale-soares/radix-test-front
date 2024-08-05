@@ -1,9 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import getAllSensorData from "./services/getAllSensorData";
-import { SensorData } from "./types/SensorData";
+import { SensorData, equipmentId } from "./types/SensorData";
 
 const App = () => {
   const [allSensorData, setAllSensorData] = useState<SensorData[]>([]);
+  const [uniqueSensorIds, setUniqueSensorIds] = useState<equipmentId[]>([]);
+  const [selectedSensor, setSelectedSensor] = useState(uniqueSensorIds[0]);
+
+  const getUniqueSensors = useCallback(() => {
+    const unique: equipmentId[] = [];
+
+    for (const sensor of allSensorData) {
+      if (!unique.includes(sensor.equipmentId)) {
+        unique.push(sensor.equipmentId);
+      }
+    }
+
+    setUniqueSensorIds(unique);
+  }, [allSensorData, setUniqueSensorIds]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -16,13 +30,27 @@ const App = () => {
     };
 
     fetchData();
-  }, []);
+    getUniqueSensors();
+  }, [getUniqueSensors]);
 
-  console.log(allSensorData);
+  const handleSensorIdChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedSensor(e.target.value);
+  };
 
   return (
     <>
-      <h1>app</h1>
+      <select
+        className="text-theme-dark-gray"
+        onChange={(e) => handleSensorIdChange(e)}
+        name="sensor-id-select"
+      >
+        {uniqueSensorIds.map((id) => (
+          <option key={id} value={id}>
+            {id}
+          </option>
+        ))}
+      </select>
+      {selectedSensor}
     </>
   );
 };
