@@ -1,11 +1,31 @@
 import { useEffect, useState, useCallback } from "react";
 import getAllSensorData from "./services/getAllSensorData";
+import getSensorData from "./services/getSensorData";
 import { SensorData, equipmentId } from "./types/SensorData";
 
 const App = () => {
   const [allSensorData, setAllSensorData] = useState<SensorData[]>([]);
+  const [sensorData, setSensorData] = useState<SensorData>();
   const [uniqueSensorIds, setUniqueSensorIds] = useState<equipmentId[]>([]);
-  const [selectedSensor, setSelectedSensor] = useState(uniqueSensorIds[0]);
+  const [selectedSensorId, setSelectedSensorId] = useState(uniqueSensorIds[0]);
+
+  const fetchAllSensorData = useCallback(async () => {
+    try {
+      const response: SensorData[] = await getAllSensorData();
+      setAllSensorData(response);
+    } catch (error) {
+      console.error("Error fetching sensor data:", error);
+    }
+  }, []);
+
+  const fetchSensorData = useCallback(async (equipmentId: equipmentId) => {
+    try {
+      const response: SensorData = await getSensorData(equipmentId);
+      setSensorData(response);
+    } catch (error) {
+      console.error("Error fetching sensor data:", error);
+    }
+  }, []);
 
   const getUniqueSensors = useCallback(() => {
     const unique: equipmentId[] = [];
@@ -19,23 +39,20 @@ const App = () => {
     setUniqueSensorIds(unique);
   }, [allSensorData, setUniqueSensorIds]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response: SensorData[] = await getAllSensorData();
-        setAllSensorData(response);
-      } catch (error) {
-        console.error("Error fetching sensor data:", error);
-      }
-    };
-
-    fetchData();
-    getUniqueSensors();
-  }, [getUniqueSensors]);
-
   const handleSensorIdChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedSensor(e.target.value);
+    setSelectedSensorId(e.target.value);
+    if (selectedSensorId) fetchSensorData(selectedSensorId);
   };
+
+  useEffect(() => {
+    fetchAllSensorData();
+  }, [fetchAllSensorData]);
+
+  useEffect(() => {
+    getUniqueSensors();
+  }, [allSensorData, getUniqueSensors]);
+
+  console.log(sensorData);
 
   return (
     <>
@@ -50,7 +67,6 @@ const App = () => {
           </option>
         ))}
       </select>
-      {selectedSensor}
     </>
   );
 };
