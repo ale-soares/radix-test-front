@@ -1,27 +1,18 @@
 import { useEffect, useState, useCallback } from "react";
-import { v4 as uuidv4 } from "uuid";
 
 import getAllSensorData from "./services/getAllSensorData";
 import getSensorData from "./services/getSensorData";
 
 import { SensorData, equipmentId } from "./types/SensorData";
 
-import Card from "./components/Card";
+import SensorMeasurements from "./sections/SensorMeasurements";
 import SensorDataGraph from "./sections/SensorDataGraph";
-
-import { calculateMeanValues } from "./utils/calculateMeanValues";
 
 const App = () => {
   const [allSensorData, setAllSensorData] = useState<SensorData[]>([]);
   const [sensorData, setSensorData] = useState<SensorData[]>();
   const [uniqueSensorIds, setUniqueSensorIds] = useState<equipmentId[]>([]);
   const [selectedSensorId, setSelectedSensorId] = useState("");
-  const [meanValues, setMeanValues] = useState({
-    last24Hours: 0,
-    last48Hours: 0,
-    lastWeek: 0,
-    lastMonth: 0,
-  });
 
   const fetchAllSensorData = useCallback(async () => {
     try {
@@ -48,7 +39,6 @@ const App = () => {
     try {
       const response: SensorData[] = await getSensorData(equipmentId);
       setSensorData(response);
-      setMeanValues(calculateMeanValues(response));
     } catch (error) {
       console.error("Error fetching sensor data:", error);
     }
@@ -88,18 +78,11 @@ const App = () => {
           </option>
         ))}
       </select>
-      <Card
-        key={uuidv4()}
-        title="Last 24 Hours"
-        value={meanValues.last24Hours}
-      />
-      <Card
-        key={uuidv4()}
-        title="Last 48 Hours"
-        value={meanValues.last48Hours}
-      />
-      <Card key={uuidv4()} title="Last Week" value={meanValues.lastWeek} />
-      <Card key={uuidv4()} title="Last Month" value={meanValues.lastMonth} />
+      {sensorData ? (
+        <SensorMeasurements selectedSensorData={sensorData} />
+      ) : (
+        <></>
+      )}
       {sensorData ? <SensorDataGraph selectedSensorData={sensorData} /> : <></>}
     </>
   );
