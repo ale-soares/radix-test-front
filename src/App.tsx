@@ -64,7 +64,7 @@ const App = () => {
 
   console.log("sensor data", sensorData);
   return (
-    <>
+    <div className="text-body lg:px-96 pb-40 mt-10 text-center">
       <select
         className="text-theme-dark-gray rounded bg-opacity-25 p-1"
         onChange={(e) => handleSensorIdChange(e)}
@@ -84,7 +84,7 @@ const App = () => {
         <></>
       )}
       {sensorData ? <SensorDataGraph selectedSensorData={sensorData} /> : <></>}
-    </>
+    </div>
   );
 };
 

@@ -26,7 +26,7 @@ const SensorMeasurements: React.FC<SensorMeasurementsProps> = ({
   }, [selectedSensorData]);
 
   return (
-    <>
+    <div className="lg:grid lg:grid-cols-2 lg:gap-4 my-8">
       <Card
         key={uuidv4()}
         title="Last 24 Hours"
@@ -39,7 +39,7 @@ const SensorMeasurements: React.FC<SensorMeasurementsProps> = ({
       />
       <Card key={uuidv4()} title="Last Week" value={meanValues.lastWeek} />
       <Card key={uuidv4()} title="Last Month" value={meanValues.lastMonth} />
-    </>
+    </div>
   );
 };
 

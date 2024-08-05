@@ -59,6 +59,7 @@ const SensorDataGraph: React.FC<SensorDataProps> = ({ selectedSensorData }) => {
 
   return (
     <div>
+      <h1 className="text-left font-bold">All Measured Values </h1>
       <div style={{ height: "400px", width: "600px" }}>
         <Line data={formatGraphData()} />
       </div>
