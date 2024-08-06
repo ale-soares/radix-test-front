@@ -15,8 +15,6 @@ This React application serves as a user interface for managing and visualizing s
 - Vite
 - TypeScript
 - Tailwind CSS
-- Redux
-- React Redux
 - Prettier
 - ESLint
 - ChartJS
