@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 
 import getAllSensorData from "./services/getAllSensorData";
 import getSensorData from "./services/getSensorData";
@@ -10,7 +10,7 @@ import SensorDataGraph from "./sections/SensorDataGraph";
 
 const App = () => {
   const [allSensorData, setAllSensorData] = useState<SensorData[]>([]);
-  const [sensorData, setSensorData] = useState<SensorData[]>();
+  const [sensorData, setSensorData] = useState<SensorData[]>([]);
   const [uniqueSensorIds, setUniqueSensorIds] = useState<equipmentId[]>([]);
   const [selectedSensorId, setSelectedSensorId] = useState("");
 
@@ -24,34 +24,32 @@ const App = () => {
   }, []);
 
   const getUniqueSensors = useCallback(() => {
-    const unique: equipmentId[] = [];
-
-    for (const sensor of allSensorData) {
-      if (!unique.includes(sensor.equipmentId)) {
-        unique.push(sensor.equipmentId);
-      }
-    }
-
+    const unique: equipmentId[] = Array.from(
+      new Set(allSensorData.map((sensor) => sensor.equipmentId))
+    );
     setUniqueSensorIds(unique);
-  }, [allSensorData, setUniqueSensorIds]);
+  }, [allSensorData]);
 
   const fetchSensorData = useCallback(async (equipmentId: equipmentId) => {
     try {
       const response: SensorData[] = await getSensorData(equipmentId);
       setSensorData(response);
     } catch (error) {
-      console.error("Error fetching sensor data:", error);
+      console.error(`Error fetching sensor data for ${equipmentId}:`, error);
+      setSensorData([]);
     }
   }, []);
 
   const handleSensorIdChange = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
+    async (e: React.ChangeEvent<HTMLSelectElement>) => {
       const selectedValue = e.target.value;
 
       setSelectedSensorId(selectedValue);
-      if (selectedSensorId) fetchSensorData(selectedValue);
+      if (selectedValue) {
+        await fetchSensorData(selectedValue);
+      }
     },
-    [fetchSensorData, selectedSensorId]
+    [fetchSensorData]
   );
 
   useEffect(() => {
@@ -62,28 +60,28 @@ const App = () => {
     getUniqueSensors();
   }, [allSensorData, getUniqueSensors]);
 
-  console.log("sensor data", sensorData);
   return (
     <div className="text-body lg:px-96 pb-40 mt-10 text-center">
+      <h1 className="text-header mb-10">Sensor Data Management</h1>
       <select
         className="text-theme-dark-gray rounded bg-opacity-25 p-1"
         onChange={(e) => handleSensorIdChange(e)}
+        value={selectedSensorId} // Use value instead of defaultValue for controlled component
         name="sensor-id-select"
-        defaultValue="select"
       >
-        <option value="select">Select Sensor ID</option>
+        <option>Select Sensor ID</option>
         {uniqueSensorIds.map((id) => (
           <option key={id} value={id}>
             {id}
           </option>
         ))}
       </select>
-      {sensorData ? (
-        <SensorMeasurements selectedSensorData={sensorData} />
-      ) : (
-        <></>
+      {sensorData.length > 0 && (
+        <>
+          <SensorMeasurements selectedSensorData={sensorData} />
+          <SensorDataGraph selectedSensorData={sensorData} />
+        </>
       )}
-      {sensorData ? <SensorDataGraph selectedSensorData={sensorData} /> : <></>}
     </div>
   );
 };
