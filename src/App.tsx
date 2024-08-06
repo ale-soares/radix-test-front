@@ -66,7 +66,7 @@ const App = () => {
       <select
         className="text-theme-dark-gray rounded bg-opacity-25 p-1"
         onChange={(e) => handleSensorIdChange(e)}
-        value={selectedSensorId} // Use value instead of defaultValue for controlled component
+        value={selectedSensorId}
         name="sensor-id-select"
       >
         <option>Select Sensor ID</option>
